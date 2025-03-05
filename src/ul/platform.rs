@@ -3,6 +3,7 @@ use crate::ul::ffi::{
     ulPlatformSetClipboard, ulPlatformSetFileSystem, ulPlatformSetFontLoader,
     ulPlatformSetGPUDriver, ulPlatformSetLogger, ulPlatformSetSurfaceDefinition,
 };
+use crate::app_core::ffi::ulEnableDefaultLogger;
 use crate::ul::string::String;
 
 /// Static methods for configuring the platform.
@@ -52,13 +53,10 @@ impl Platform {
     }
 
     /// Enable the default logger (requires AppCore).
-    pub fn enable_default_logger() {
-        unsafe extern "C" {
-            fn ulEnableDefaultLogger();
-        }
-
+    pub fn enable_default_logger(log_path: &str) {
+        let log_path_string = String::from_str(log_path);
         unsafe {
-            ulEnableDefaultLogger();
+            ulEnableDefaultLogger(log_path_string.raw());
         }
     }
 

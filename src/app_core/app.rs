@@ -7,49 +7,30 @@ use crate::app_core::settings::Settings;
 use crate::app_core::error::Error;
 use crate::ul::{Config, Renderer};
 use std::os::raw::c_void;
-use std::sync::{Arc, Mutex};
+use std::cell::RefCell;
 
 /// Callback for app updates.
 pub trait UpdateCallback: Send {
     fn on_update(&self);
 }
 
-// Callback wrapper for the C API
-extern "C" fn update_callback_wrapper<T: UpdateCallback>(user_data: *mut c_void) {
-    unsafe {
-        if !user_data.is_null() {
-            let callback = &*(user_data as *const T);
-            callback.on_update();
+// Thread-local storage for the active callback
+thread_local! {
+    static ACTIVE_UPDATE_CALLBACK: RefCell<Option<Box<dyn FnMut()>>> = RefCell::new(None);
+}
+
+extern "C" fn update_callback_trampoline(_user_data: *mut c_void) {
+    ACTIVE_UPDATE_CALLBACK.with(|cell| {
+        if let Some(callback) = cell.borrow_mut().as_mut() {
+            callback();
         }
-    }
-}
-
-// Thread-safe callback storage
-struct CallbackStorage<T: ?Sized> {
-    data: Option<Box<T>>,
-}
-
-impl<T> CallbackStorage<T> {
-    fn new() -> Self {
-        Self { data: None }
-    }
-
-    fn set(&mut self, data: T) -> *mut c_void {
-        self.data = Some(Box::new(data));
-        self.data.as_ref().unwrap().as_ref() as *const T as *mut c_void
-    }
-
-    fn clear(&mut self) {
-        self.data = None;
-    }
+    });
 }
 
 /// The main application class for AppCore, responsible for managing the renderer,
 /// run loop, windows, and platform-specific operations.
 pub struct App {
     raw: ULApp,
-    // Store the callback to ensure it lives as long as the app
-    update_callback: Arc<Mutex<CallbackStorage<dyn UpdateCallback>>>,
 }
 
 impl App {
@@ -72,10 +53,7 @@ impl App {
                 return Err(Error::CreationFailed("Failed to create app instance"));
             }
             
-            Ok(Self { 
-                raw,
-                update_callback: Arc::new(Mutex::new(CallbackStorage::new())),
-            })
+            Ok(Self { raw })
         }
     }
 
@@ -103,38 +81,53 @@ impl App {
     /// # Arguments
     ///
     /// * `callback` - The callback to invoke on update
-    pub fn set_update_callback<T: 'static + UpdateCallback>(&self, callback: T) -> Result<(), Error> {
+    ///
+    /// # Returns
+    ///
+    /// A Result containing Ok(()) if successful, or an Error if callback setting failed.
+    pub fn set_update_callback<F>(&self, callback: F) -> Result<(), Error>
+    where
+        F: FnMut() + 'static,
+    {
+        // Store the callback in thread-local storage
+        ACTIVE_UPDATE_CALLBACK.with(|cell| {
+            *cell.borrow_mut() = Some(Box::new(callback));
+        });
+        
         unsafe {
-            let mut update_callback = match self.update_callback.lock() {
-                Ok(guard) => guard,
-                Err(_) => return Err(Error::CallbackRegistrationFailed("Failed to acquire callback lock")),
-            };
-            
-            let user_data = update_callback.set(callback);
-            
             ulAppSetUpdateCallback(
                 self.raw,
-                Some(update_callback_wrapper::<T>),
-                user_data,
+                update_callback_trampoline,
+                std::ptr::null_mut(),
             );
-            
-            Ok(())
         }
+        
+        Ok(())
     }
 
     /// Clear the update callback.
+    ///
+    /// # Returns
+    ///
+    /// A Result containing Ok(()) if successful, or an Error if callback clearing failed.
     pub fn clear_update_callback(&self) -> Result<(), Error> {
+        // Clear the callback from thread-local storage
+        ACTIVE_UPDATE_CALLBACK.with(|cell| {
+            *cell.borrow_mut() = None;
+        });
+        
         unsafe {
-            let mut update_callback = match self.update_callback.lock() {
-                Ok(guard) => guard,
-                Err(_) => return Err(Error::InvalidOperation("Failed to acquire callback lock")),
-            };
+            // Define a no-op callback
+            extern "C" fn no_op(_: *mut c_void) {}
             
-            update_callback.clear();
-            ulAppSetUpdateCallback(self.raw, None, std::ptr::null_mut());
-            
-            Ok(())
+            ulAppSetUpdateCallback(
+                self.raw,
+                no_op,
+                std::ptr::null_mut(),
+            );
         }
+        
+        Ok(())
     }
 
     /// Check if the app is running.
@@ -191,6 +184,9 @@ impl App {
 
 impl Drop for App {
     fn drop(&mut self) {
+        // Clear the update callback to avoid dangling references
+        let _ = self.clear_update_callback();
+        
         if !self.raw.is_null() {
             unsafe {
                 ulDestroyApp(self.raw);

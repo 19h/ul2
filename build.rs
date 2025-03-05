@@ -13,6 +13,14 @@ fn main() {
     println!("cargo:rustc-link-lib=dylib=UltralightCore");
     println!("cargo:rustc-link-lib=dylib=WebCore");
 
+    // Set the rpath so the libraries can be found at runtime
+    let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap_or_else(|_| String::from("unknown"));
+    if target_os == "linux" {
+        println!("cargo:rustc-link-arg=-Wl,-rpath,{}", lib_dir.display());
+    } else if target_os == "macos" {
+        println!("cargo:rustc-link-arg=-Wl,-rpath,{}", lib_dir.display());
+    }
+
     println!("cargo:rerun-if-changed={}", lib_dir.display());
     println!("cargo:rerun-if-env-changed=UL_DIR");
     println!("cargo:rerun-if-env-changed=ULTRALIGHT_DIR");

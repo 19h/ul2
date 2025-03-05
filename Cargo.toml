@@ -3,5 +3,8 @@ name = "ul"
 version = "0.1.0"
 edition = "2024"
 
+[examples]
+main = "examples/app.rs"
+
 [dependencies]
 bitflags = "2.9.0"

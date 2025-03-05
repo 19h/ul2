@@ -1,15 +1,15 @@
 //! # Ultralight-rs
-//! 
+//!
 //! Safe Rust bindings for the Ultralight web browser engine.
-//! 
+//!
 //! Ultralight is a lightweight, cross-platform browser engine designed for embedding in applications.
 //! These bindings provide a safe, idiomatic Rust interface to the Ultralight C API.
-//! 
+//!
 //! ## Example usage
-//! 
+//!
 //! ```rust
 //! use ultralight_rs::*;
-//! 
+//!
 //! fn main() {
 //!     // Initialize the platform with default handlers
 //!     Platform::enable_default_logger();
@@ -50,47 +50,43 @@
 //! }
 //! ```
 
-pub mod ffi;
-pub mod error;
-pub mod string;
 pub mod bitmap;
 pub mod buffer;
 pub mod config;
-pub mod view_config;
+pub mod error;
+pub mod events;
+pub mod ffi;
+pub mod geometry;
+pub mod image_source;
 pub mod platform;
 pub mod renderer;
 pub mod session;
+pub mod string;
 pub mod surface;
 pub mod view;
-pub mod geometry;
-pub mod events;
-pub mod image_source;
+pub mod view_config;
 
 // Re-exports
-pub use error::Error;
-pub use string::String;
 pub use bitmap::{Bitmap, BitmapFormat};
 pub use buffer::Buffer;
 pub use config::Config;
-pub use view_config::ViewConfig;
+pub use error::Error;
+pub use events::{
+    GamepadAxisEvent, GamepadButtonEvent, GamepadEvent, GamepadEventType, KeyEvent, KeyEventType,
+    MouseButton, MouseEvent, MouseEventType, ScrollEvent, ScrollEventType,
+};
+pub use geometry::{IntRect, Rect};
+pub use image_source::ImageSource;
 pub use platform::Platform;
 pub use renderer::Renderer;
 pub use session::Session;
-pub use surface::{Surface, BitmapSurface, SurfaceDefinition};
+pub use string::String;
+pub use surface::{BitmapSurface, Surface, SurfaceDefinition};
 pub use view::View;
-pub use geometry::{Rect, IntRect};
-pub use events::{
-    KeyEvent, KeyEventType, MouseEvent, MouseEventType, MouseButton,
-    ScrollEvent, ScrollEventType, GamepadEvent, GamepadEventType,
-    GamepadAxisEvent, GamepadButtonEvent
-};
-pub use image_source::ImageSource;
+pub use view_config::ViewConfig;
 
 // Constants and enums
 pub use ffi::{
-    ULCursor as Cursor,
-    ULFaceWinding as FaceWinding,
-    ULFontHinting as FontHinting,
-    ULMessageSource as MessageSource,
-    ULMessageLevel as MessageLevel,
+    ULCursor as Cursor, ULFaceWinding as FaceWinding, ULFontHinting as FontHinting,
+    ULMessageLevel as MessageLevel, ULMessageSource as MessageSource,
 };

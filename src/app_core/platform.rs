@@ -1,5 +1,7 @@
+use crate::app_core::ffi::{
+    ulEnableDefaultLogger, ulEnablePlatformFileSystem, ulEnablePlatformFontLoader,
+};
 use crate::ul::String as ULString;
-use crate::app_core::ffi::{ulEnablePlatformFontLoader, ulEnablePlatformFileSystem, ulEnableDefaultLogger};
 
 /// Initialize the platform font loader.
 ///

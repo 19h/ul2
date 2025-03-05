@@ -1,6 +1,8 @@
-use crate::app_core::ffi::{ULSettings, ulCreateSettings, ulDestroySettings, ulSettingsSetDeveloperName,
-                    ulSettingsSetAppName, ulSettingsSetFileSystemPath, 
-                    ulSettingsSetLoadShadersFromFileSystem, ulSettingsSetForceCPURenderer};
+use crate::app_core::ffi::{
+    ULSettings, ulCreateSettings, ulDestroySettings, ulSettingsSetAppName,
+    ulSettingsSetDeveloperName, ulSettingsSetFileSystemPath, ulSettingsSetForceCPURenderer,
+    ulSettingsSetLoadShadersFromFileSystem,
+};
 use crate::ul::String as ULString;
 
 /// Settings used to customize AppCore runtime behavior.
@@ -16,12 +18,12 @@ impl Settings {
             Self { raw }
         }
     }
-    
+
     /// Get a reference to the raw ULSettings.
     pub fn raw(&self) -> ULSettings {
         self.raw
     }
-    
+
     /// Set the name of the developer of this app.
     ///
     /// This is used to generate a unique path to store local application data
@@ -35,7 +37,7 @@ impl Settings {
         }
         self
     }
-    
+
     /// Set the name of this app.
     ///
     /// This is used to generate a unique path to store local application data
@@ -49,7 +51,7 @@ impl Settings {
         }
         self
     }
-    
+
     /// Set the root file path for the file system.
     ///
     /// This will be used to resolve all file URLs, e.g., file:///page.html
@@ -67,10 +69,10 @@ impl Settings {
         }
         self
     }
-    
+
     /// Set whether or not to load and compile shaders from the file system.
     ///
-    /// When enabled, shaders will be loaded from the /shaders/ path (relative 
+    /// When enabled, shaders will be loaded from the /shaders/ path (relative
     /// to file_system_path).
     ///
     /// If this is false (the default), pre-compiled shaders will be loaded
@@ -81,7 +83,7 @@ impl Settings {
         }
         self
     }
-    
+
     /// Force the engine to always use the CPU renderer.
     ///
     /// By default, the GPU renderer is used when a compatible GPU is detected.

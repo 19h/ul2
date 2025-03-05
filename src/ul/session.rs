@@ -1,5 +1,7 @@
-use crate::ul::ffi::{ULSession, ULRenderer, ulCreateSession, ulDestroySession, ulDefaultSession,
-                ulSessionIsPersistent, ulSessionGetName, ulSessionGetId, ulSessionGetDiskPath};
+use crate::ul::ffi::{
+    ULSession, ulCreateSession, ulDefaultSession, ulDestroySession, ulSessionGetDiskPath,
+    ulSessionGetId, ulSessionGetName, ulSessionIsPersistent,
+};
 use crate::ul::renderer::Renderer;
 use crate::ul::string::String;
 
@@ -18,7 +20,7 @@ impl Session {
             Self { raw, owned: true }
         }
     }
-    
+
     /// Get the default session.
     pub fn default(renderer: &Renderer) -> Self {
         unsafe {
@@ -26,7 +28,7 @@ impl Session {
             Self { raw, owned: false }
         }
     }
-    
+
     /// Create a session from a raw ULSession pointer.
     ///
     /// # Safety
@@ -35,17 +37,17 @@ impl Session {
     pub unsafe fn from_raw(raw: ULSession, owned: bool) -> Self {
         Self { raw, owned }
     }
-    
+
     /// Get a reference to the raw ULSession.
     pub fn raw(&self) -> ULSession {
         self.raw
     }
-    
+
     /// Check if the session is persistent (backed to disk).
     pub fn is_persistent(&self) -> bool {
         unsafe { ulSessionIsPersistent(self.raw) }
     }
-    
+
     /// Get the name of the session.
     pub fn name(&self) -> String {
         unsafe {
@@ -53,12 +55,12 @@ impl Session {
             String::from_raw(name, false)
         }
     }
-    
+
     /// Get the unique numeric ID of the session.
     pub fn id(&self) -> u64 {
         unsafe { ulSessionGetId(self.raw) }
     }
-    
+
     /// Get the disk path for persistent sessions.
     pub fn disk_path(&self) -> String {
         unsafe {

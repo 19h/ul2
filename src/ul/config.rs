@@ -1,12 +1,13 @@
-use crate::ul::ffi::{ULConfig, ULFaceWinding, ULFontHinting, ulCreateConfig, ulDestroyConfig, 
-                ulConfigSetCachePath, ulConfigSetResourcePathPrefix, ulConfigSetFaceWinding, 
-                ulConfigSetFontHinting, ulConfigSetFontGamma, ulConfigSetUserStylesheet, 
-                ulConfigSetForceRepaint, ulConfigSetAnimationTimerDelay, ulConfigSetScrollTimerDelay, 
-                ulConfigSetRecycleDelay, ulConfigSetMemoryCacheSize, ulConfigSetPageCacheSize, 
-                ulConfigSetOverrideRAMSize, ulConfigSetMinLargeHeapSize, ulConfigSetMinSmallHeapSize, 
-                ulConfigSetNumRendererThreads, ulConfigSetMaxUpdateTime, ulConfigSetBitmapAlignment};
 use crate::ul::String;
-use crate::ul::error::Error;
+use crate::ul::ffi::{
+    ULConfig, ULFaceWinding, ULFontHinting, ulConfigSetAnimationTimerDelay,
+    ulConfigSetBitmapAlignment, ulConfigSetCachePath, ulConfigSetFaceWinding, ulConfigSetFontGamma,
+    ulConfigSetFontHinting, ulConfigSetForceRepaint, ulConfigSetMaxUpdateTime,
+    ulConfigSetMemoryCacheSize, ulConfigSetMinLargeHeapSize, ulConfigSetMinSmallHeapSize,
+    ulConfigSetNumRendererThreads, ulConfigSetOverrideRAMSize, ulConfigSetPageCacheSize,
+    ulConfigSetRecycleDelay, ulConfigSetResourcePathPrefix, ulConfigSetScrollTimerDelay,
+    ulConfigSetUserStylesheet, ulCreateConfig, ulDestroyConfig,
+};
 
 /// A safe wrapper around Ultralight's ULConfig type.
 pub struct Config {
@@ -21,12 +22,12 @@ impl Config {
             Self { raw }
         }
     }
-    
+
     /// Get a reference to the raw ULConfig.
     pub fn raw(&self) -> ULConfig {
         self.raw
     }
-    
+
     /// Set the cache path for persistent Session data.
     pub fn set_cache_path(&mut self, path: &str) -> &mut Self {
         let path_str = String::from_str(path);
@@ -35,7 +36,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the relative path to the resources folder.
     pub fn set_resource_path_prefix(&mut self, prefix: &str) -> &mut Self {
         let prefix_str = String::from_str(prefix);
@@ -44,7 +45,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the winding order for front-facing triangles.
     pub fn set_face_winding(&mut self, winding: ULFaceWinding) -> &mut Self {
         unsafe {
@@ -52,7 +53,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the font hinting algorithm.
     pub fn set_font_hinting(&mut self, hinting: ULFontHinting) -> &mut Self {
         unsafe {
@@ -60,7 +61,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the gamma to use when composing font glyphs.
     pub fn set_font_gamma(&mut self, gamma: f64) -> &mut Self {
         unsafe {
@@ -68,7 +69,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the global user-defined CSS string.
     pub fn set_user_stylesheet(&mut self, css: &str) -> &mut Self {
         let css_str = String::from_str(css);
@@ -77,7 +78,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set whether to continuously repaint Views.
     pub fn set_force_repaint(&mut self, enabled: bool) -> &mut Self {
         unsafe {
@@ -85,7 +86,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the delay between ticks of a CSS animation.
     pub fn set_animation_timer_delay(&mut self, delay: f64) -> &mut Self {
         unsafe {
@@ -93,7 +94,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the delay between ticks of a smooth scroll animation.
     pub fn set_scroll_timer_delay(&mut self, delay: f64) -> &mut Self {
         unsafe {
@@ -101,7 +102,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the delay between calls to the recycler.
     pub fn set_recycle_delay(&mut self, delay: f64) -> &mut Self {
         unsafe {
@@ -109,7 +110,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the size of WebCore's memory cache in bytes.
     pub fn set_memory_cache_size(&mut self, size: u32) -> &mut Self {
         unsafe {
@@ -117,7 +118,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the number of pages to keep in the cache.
     pub fn set_page_cache_size(&mut self, size: u32) -> &mut Self {
         unsafe {
@@ -125,7 +126,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the system's physical RAM size in bytes.
     pub fn set_override_ram_size(&mut self, size: u32) -> &mut Self {
         unsafe {
@@ -133,7 +134,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the minimum size of large VM heaps in JavaScriptCore.
     pub fn set_min_large_heap_size(&mut self, size: u32) -> &mut Self {
         unsafe {
@@ -141,7 +142,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the minimum size of small VM heaps in JavaScriptCore.
     pub fn set_min_small_heap_size(&mut self, size: u32) -> &mut Self {
         unsafe {
@@ -149,7 +150,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the number of threads to use in the Renderer.
     pub fn set_num_renderer_threads(&mut self, num_threads: u32) -> &mut Self {
         unsafe {
@@ -157,7 +158,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the max amount of time to allow repeating timers to run.
     pub fn set_max_update_time(&mut self, max_time: f64) -> &mut Self {
         unsafe {
@@ -165,7 +166,7 @@ impl Config {
         }
         self
     }
-    
+
     /// Set the alignment in bytes of the BitmapSurface.
     pub fn set_bitmap_alignment(&mut self, alignment: u32) -> &mut Self {
         unsafe {

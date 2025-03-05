@@ -1,4 +1,4 @@
-use crate::app_core::ffi::{ULMonitor, ulMonitorGetScale, ulMonitorGetWidth, ulMonitorGetHeight};
+use crate::app_core::ffi::{ULMonitor, ulMonitorGetHeight, ulMonitorGetScale, ulMonitorGetWidth};
 
 /// A representation of a display monitor.
 pub struct Monitor {
@@ -14,22 +14,22 @@ impl Monitor {
     pub unsafe fn from_raw(raw: ULMonitor) -> Self {
         Self { raw }
     }
-    
+
     /// Get a reference to the raw ULMonitor.
     pub fn raw(&self) -> ULMonitor {
         self.raw
     }
-    
+
     /// Get the monitor's DPI scale (1.0 = 100%).
     pub fn scale(&self) -> f64 {
         unsafe { ulMonitorGetScale(self.raw) }
     }
-    
+
     /// Get the width of the monitor (in pixels).
     pub fn width(&self) -> u32 {
         unsafe { ulMonitorGetWidth(self.raw) }
     }
-    
+
     /// Get the height of the monitor (in pixels).
     pub fn height(&self) -> u32 {
         unsafe { ulMonitorGetHeight(self.raw) }

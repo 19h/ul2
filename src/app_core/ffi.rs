@@ -3,10 +3,10 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
-use std::os::raw::{c_void, c_char, c_int, c_uint, c_double};
+use std::os::raw::{c_char, c_double, c_int, c_uint, c_void};
 
 use crate::ul::String as ULString;
-use crate::ul::ffi::{ULConfig, ULRenderer, ULView, ULCursor};
+use crate::ul::ffi::{ULConfig, ULCursor, ULRenderer, ULView};
 
 // Opaque struct types
 pub enum C_Settings {}
@@ -26,16 +26,17 @@ pub type ULOverlay = *mut C_Overlay;
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum ULWindowFlags {
-    kWindowFlags_Borderless  = 1 << 0,
-    kWindowFlags_Titled      = 1 << 1,
-    kWindowFlags_Resizable   = 1 << 2,
+    kWindowFlags_Borderless = 1 << 0,
+    kWindowFlags_Titled = 1 << 1,
+    kWindowFlags_Resizable = 1 << 2,
     kWindowFlags_Maximizable = 1 << 3,
-    kWindowFlags_Hidden      = 1 << 4,
+    kWindowFlags_Hidden = 1 << 4,
 }
 
 pub type ULUpdateCallback = extern "C" fn(user_data: *mut c_void);
 pub type ULCloseCallback = extern "C" fn(user_data: *mut c_void, window: ULWindow);
-pub type ULResizeCallback = extern "C" fn(user_data: *mut c_void, window: ULWindow, width: c_uint, height: c_uint);
+pub type ULResizeCallback =
+    extern "C" fn(user_data: *mut c_void, window: ULWindow, width: c_uint, height: c_uint);
 
 // Function definitions
 
@@ -71,11 +72,24 @@ unsafe extern "C" {
 
 // Window functions
 unsafe extern "C" {
-    pub fn ulCreateWindow(monitor: ULMonitor, width: c_uint, height: c_uint, 
-                            fullscreen: bool, window_flags: c_uint) -> ULWindow;
+    pub fn ulCreateWindow(
+        monitor: ULMonitor,
+        width: c_uint,
+        height: c_uint,
+        fullscreen: bool,
+        window_flags: c_uint,
+    ) -> ULWindow;
     pub fn ulDestroyWindow(window: ULWindow);
-    pub fn ulWindowSetCloseCallback(window: ULWindow, callback: ULCloseCallback, user_data: *mut c_void);
-    pub fn ulWindowSetResizeCallback(window: ULWindow, callback: ULResizeCallback, user_data: *mut c_void);
+    pub fn ulWindowSetCloseCallback(
+        window: ULWindow,
+        callback: ULCloseCallback,
+        user_data: *mut c_void,
+    );
+    pub fn ulWindowSetResizeCallback(
+        window: ULWindow,
+        callback: ULResizeCallback,
+        user_data: *mut c_void,
+    );
     pub fn ulWindowGetScreenWidth(window: ULWindow) -> c_uint;
     pub fn ulWindowGetWidth(window: ULWindow) -> c_uint;
     pub fn ulWindowGetScreenHeight(window: ULWindow) -> c_uint;
@@ -99,10 +113,15 @@ unsafe extern "C" {
 
 // Overlay functions
 unsafe extern "C" {
-    pub fn ulCreateOverlay(window: ULWindow, width: c_uint, height: c_uint, 
-                            x: c_int, y: c_int) -> ULOverlay;
-    pub fn ulCreateOverlayWithView(window: ULWindow, view: ULView, 
-                                    x: c_int, y: c_int) -> ULOverlay;
+    pub fn ulCreateOverlay(
+        window: ULWindow,
+        width: c_uint,
+        height: c_uint,
+        x: c_int,
+        y: c_int,
+    ) -> ULOverlay;
+    pub fn ulCreateOverlayWithView(window: ULWindow, view: ULView, x: c_int, y: c_int)
+    -> ULOverlay;
     pub fn ulDestroyOverlay(overlay: ULOverlay);
     pub fn ulOverlayGetView(overlay: ULOverlay) -> ULView;
     pub fn ulOverlayGetWidth(overlay: ULOverlay) -> c_uint;

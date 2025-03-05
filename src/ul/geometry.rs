@@ -1,4 +1,6 @@
-use crate::ul::ffi::{ULRect, ULIntRect, ulRectIsEmpty, ulRectMakeEmpty, ulIntRectIsEmpty, ulIntRectMakeEmpty};
+use crate::ul::ffi::{
+    ULIntRect, ULRect, ulIntRectIsEmpty, ulIntRectMakeEmpty, ulRectIsEmpty, ulRectMakeEmpty,
+};
 
 /// A rectangle with floating-point coordinates.
 #[derive(Debug, Clone, Copy)]
@@ -21,16 +23,19 @@ pub struct IntRect {
 impl Rect {
     /// Create a new rectangle with the specified coordinates.
     pub fn new(left: f32, top: f32, right: f32, bottom: f32) -> Self {
-        Self { left, top, right, bottom }
-    }
-    
-    /// Create a new empty rectangle.
-    pub fn empty() -> Self {
-        unsafe {
-            Self::from_raw(ulRectMakeEmpty())
+        Self {
+            left,
+            top,
+            right,
+            bottom,
         }
     }
-    
+
+    /// Create a new empty rectangle.
+    pub fn empty() -> Self {
+        unsafe { Self::from_raw(ulRectMakeEmpty()) }
+    }
+
     /// Create a rectangle from a raw ULRect.
     pub fn from_raw(raw: ULRect) -> Self {
         Self {
@@ -40,7 +45,7 @@ impl Rect {
             bottom: raw.bottom,
         }
     }
-    
+
     /// Convert the rectangle to a raw ULRect.
     pub fn into_raw(self) -> ULRect {
         ULRect {
@@ -50,17 +55,17 @@ impl Rect {
             bottom: self.bottom,
         }
     }
-    
+
     /// Check if the rectangle is empty.
     pub fn is_empty(&self) -> bool {
         unsafe { ulRectIsEmpty(self.into_raw()) }
     }
-    
+
     /// Get the width of the rectangle.
     pub fn width(&self) -> f32 {
         self.right - self.left
     }
-    
+
     /// Get the height of the rectangle.
     pub fn height(&self) -> f32 {
         self.bottom - self.top
@@ -70,16 +75,19 @@ impl Rect {
 impl IntRect {
     /// Create a new rectangle with the specified coordinates.
     pub fn new(left: i32, top: i32, right: i32, bottom: i32) -> Self {
-        Self { left, top, right, bottom }
-    }
-    
-    /// Create a new empty rectangle.
-    pub fn empty() -> Self {
-        unsafe {
-            Self::from_raw(ulIntRectMakeEmpty())
+        Self {
+            left,
+            top,
+            right,
+            bottom,
         }
     }
-    
+
+    /// Create a new empty rectangle.
+    pub fn empty() -> Self {
+        unsafe { Self::from_raw(ulIntRectMakeEmpty()) }
+    }
+
     /// Create a rectangle from a raw ULIntRect.
     pub fn from_raw(raw: ULIntRect) -> Self {
         Self {
@@ -89,7 +97,7 @@ impl IntRect {
             bottom: raw.bottom,
         }
     }
-    
+
     /// Convert the rectangle to a raw ULIntRect.
     pub fn into_raw(self) -> ULIntRect {
         ULIntRect {
@@ -99,17 +107,17 @@ impl IntRect {
             bottom: self.bottom,
         }
     }
-    
+
     /// Check if the rectangle is empty.
     pub fn is_empty(&self) -> bool {
         unsafe { ulIntRectIsEmpty(self.into_raw()) }
     }
-    
+
     /// Get the width of the rectangle.
     pub fn width(&self) -> i32 {
         self.right - self.left
     }
-    
+
     /// Get the height of the rectangle.
     pub fn height(&self) -> i32 {
         self.bottom - self.top

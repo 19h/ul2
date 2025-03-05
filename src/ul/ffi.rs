@@ -3,8 +3,9 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
-use std::os::raw::{c_char, c_double, c_float, c_int, c_void, c_uchar, c_uint, c_ulonglong, c_ushort};
-use std::ffi::c_ulong;
+use std::os::raw::{
+    c_char, c_double, c_float, c_int, c_uchar, c_uint, c_ulonglong, c_ushort, c_void,
+};
 
 // Re-export JSContextRef from JavaScriptCore
 pub type JSContextRef = *mut c_void;
@@ -128,14 +129,14 @@ pub enum ULCursor {
     kCursor_ZoomOut,
     kCursor_Grab,
     kCursor_Grabbing,
-    kCursor_Custom
+    kCursor_Custom,
 }
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum ULBitmapFormat {
     kBitmapFormat_A8_UNORM,
-    kBitmapFormat_BGRA8_UNORM_SRGB
+    kBitmapFormat_BGRA8_UNORM_SRGB,
 }
 
 #[repr(C)]
@@ -246,7 +247,7 @@ pub struct ULClipboard {
 pub enum ULLogLevel {
     kLogLevel_Error = 0,
     kLogLevel_Warning,
-    kLogLevel_Info
+    kLogLevel_Info,
 }
 
 pub type ULLoggerLogMessageCallback = extern "C" fn(log_level: ULLogLevel, message: ULString);
@@ -274,8 +275,10 @@ pub struct ULFileSystem {
 
 // FontLoader related
 pub type ULFontLoaderGetFallbackFont = extern "C" fn() -> ULString;
-pub type ULFontLoaderGetFallbackFontForCharacters = extern "C" fn(characters: ULString, weight: c_int, italic: bool) -> ULString;
-pub type ULFontLoaderLoad = extern "C" fn(family: ULString, weight: c_int, italic: bool) -> ULFontFile;
+pub type ULFontLoaderGetFallbackFontForCharacters =
+    extern "C" fn(characters: ULString, weight: c_int, italic: bool) -> ULString;
+pub type ULFontLoaderLoad =
+    extern "C" fn(family: ULString, weight: c_int, italic: bool) -> ULFontFile;
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -286,15 +289,18 @@ pub struct ULFontLoader {
 }
 
 // Surface related
-pub type ULSurfaceDefinitionCreateCallback = extern "C" fn(width: c_uint, height: c_uint) -> *mut c_void;
+pub type ULSurfaceDefinitionCreateCallback =
+    extern "C" fn(width: c_uint, height: c_uint) -> *mut c_void;
 pub type ULSurfaceDefinitionDestroyCallback = extern "C" fn(user_data: *mut c_void);
 pub type ULSurfaceDefinitionGetWidthCallback = extern "C" fn(user_data: *mut c_void) -> c_uint;
 pub type ULSurfaceDefinitionGetHeightCallback = extern "C" fn(user_data: *mut c_void) -> c_uint;
 pub type ULSurfaceDefinitionGetRowBytesCallback = extern "C" fn(user_data: *mut c_void) -> c_uint;
 pub type ULSurfaceDefinitionGetSizeCallback = extern "C" fn(user_data: *mut c_void) -> usize;
-pub type ULSurfaceDefinitionLockPixelsCallback = extern "C" fn(user_data: *mut c_void) -> *mut c_void;
+pub type ULSurfaceDefinitionLockPixelsCallback =
+    extern "C" fn(user_data: *mut c_void) -> *mut c_void;
 pub type ULSurfaceDefinitionUnlockPixelsCallback = extern "C" fn(user_data: *mut c_void);
-pub type ULSurfaceDefinitionResizeCallback = extern "C" fn(user_data: *mut c_void, width: c_uint, height: c_uint);
+pub type ULSurfaceDefinitionResizeCallback =
+    extern "C" fn(user_data: *mut c_void, width: c_uint, height: c_uint);
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -311,71 +317,74 @@ pub struct ULSurfaceDefinition {
 }
 
 // View callbacks
-pub type ULChangeTitleCallback = extern "C" fn(user_data: *mut c_void, caller: ULView, title: ULString);
+pub type ULChangeTitleCallback =
+    extern "C" fn(user_data: *mut c_void, caller: ULView, title: ULString);
 pub type ULChangeURLCallback = extern "C" fn(user_data: *mut c_void, caller: ULView, url: ULString);
-pub type ULChangeTooltipCallback = extern "C" fn(user_data: *mut c_void, caller: ULView, tooltip: ULString);
-pub type ULChangeCursorCallback = extern "C" fn(user_data: *mut c_void, caller: ULView, cursor: ULCursor);
+pub type ULChangeTooltipCallback =
+    extern "C" fn(user_data: *mut c_void, caller: ULView, tooltip: ULString);
+pub type ULChangeCursorCallback =
+    extern "C" fn(user_data: *mut c_void, caller: ULView, cursor: ULCursor);
 pub type ULAddConsoleMessageCallback = extern "C" fn(
-    user_data: *mut c_void, 
-    caller: ULView, 
-    source: ULMessageSource, 
-    level: ULMessageLevel, 
+    user_data: *mut c_void,
+    caller: ULView,
+    source: ULMessageSource,
+    level: ULMessageLevel,
     message: ULString,
-    line_number: c_uint, 
-    column_number: c_uint, 
-    source_id: ULString
+    line_number: c_uint,
+    column_number: c_uint,
+    source_id: ULString,
 );
 pub type ULCreateChildViewCallback = extern "C" fn(
-    user_data: *mut c_void, 
-    caller: ULView, 
-    opener_url: ULString, 
-    target_url: ULString, 
+    user_data: *mut c_void,
+    caller: ULView,
+    opener_url: ULString,
+    target_url: ULString,
     is_popup: bool,
-    popup_rect: ULIntRect
+    popup_rect: ULIntRect,
 ) -> ULView;
 pub type ULCreateInspectorViewCallback = extern "C" fn(
-    user_data: *mut c_void, 
-    caller: ULView, 
+    user_data: *mut c_void,
+    caller: ULView,
     is_local: bool,
-    inspected_url: ULString
+    inspected_url: ULString,
 ) -> ULView;
 pub type ULBeginLoadingCallback = extern "C" fn(
-    user_data: *mut c_void, 
-    caller: ULView, 
-    frame_id: c_ulonglong, 
-    is_main_frame: bool, 
-    url: ULString
+    user_data: *mut c_void,
+    caller: ULView,
+    frame_id: c_ulonglong,
+    is_main_frame: bool,
+    url: ULString,
 );
 pub type ULFinishLoadingCallback = extern "C" fn(
-    user_data: *mut c_void, 
-    caller: ULView, 
-    frame_id: c_ulonglong, 
-    is_main_frame: bool, 
-    url: ULString
+    user_data: *mut c_void,
+    caller: ULView,
+    frame_id: c_ulonglong,
+    is_main_frame: bool,
+    url: ULString,
 );
 pub type ULFailLoadingCallback = extern "C" fn(
-    user_data: *mut c_void, 
-    caller: ULView, 
-    frame_id: c_ulonglong, 
-    is_main_frame: bool, 
-    url: ULString, 
+    user_data: *mut c_void,
+    caller: ULView,
+    frame_id: c_ulonglong,
+    is_main_frame: bool,
+    url: ULString,
     description: ULString,
-    error_domain: ULString, 
-    error_code: c_int
+    error_domain: ULString,
+    error_code: c_int,
 );
 pub type ULWindowObjectReadyCallback = extern "C" fn(
-    user_data: *mut c_void, 
-    caller: ULView, 
-    frame_id: c_ulonglong, 
-    is_main_frame: bool, 
-    url: ULString
+    user_data: *mut c_void,
+    caller: ULView,
+    frame_id: c_ulonglong,
+    is_main_frame: bool,
+    url: ULString,
 );
 pub type ULDOMReadyCallback = extern "C" fn(
-    user_data: *mut c_void, 
-    caller: ULView, 
-    frame_id: c_ulonglong, 
-    is_main_frame: bool, 
-    url: ULString
+    user_data: *mut c_void,
+    caller: ULView,
+    frame_id: c_ulonglong,
+    is_main_frame: bool,
+    url: ULString,
 );
 pub type ULUpdateHistoryCallback = extern "C" fn(user_data: *mut c_void, caller: ULView);
 
@@ -509,11 +518,14 @@ pub type ULGPUDriverCreateTextureCallback = extern "C" fn(texture_id: c_uint, bi
 pub type ULGPUDriverUpdateTextureCallback = extern "C" fn(texture_id: c_uint, bitmap: ULBitmap);
 pub type ULGPUDriverDestroyTextureCallback = extern "C" fn(texture_id: c_uint);
 pub type ULGPUDriverNextRenderBufferIdCallback = extern "C" fn() -> c_uint;
-pub type ULGPUDriverCreateRenderBufferCallback = extern "C" fn(render_buffer_id: c_uint, buffer: ULRenderBuffer);
+pub type ULGPUDriverCreateRenderBufferCallback =
+    extern "C" fn(render_buffer_id: c_uint, buffer: ULRenderBuffer);
 pub type ULGPUDriverDestroyRenderBufferCallback = extern "C" fn(render_buffer_id: c_uint);
 pub type ULGPUDriverNextGeometryIdCallback = extern "C" fn() -> c_uint;
-pub type ULGPUDriverCreateGeometryCallback = extern "C" fn(geometry_id: c_uint, vertices: ULVertexBuffer, indices: ULIndexBuffer);
-pub type ULGPUDriverUpdateGeometryCallback = extern "C" fn(geometry_id: c_uint, vertices: ULVertexBuffer, indices: ULIndexBuffer);
+pub type ULGPUDriverCreateGeometryCallback =
+    extern "C" fn(geometry_id: c_uint, vertices: ULVertexBuffer, indices: ULIndexBuffer);
+pub type ULGPUDriverUpdateGeometryCallback =
+    extern "C" fn(geometry_id: c_uint, vertices: ULVertexBuffer, indices: ULIndexBuffer);
 pub type ULGPUDriverDestroyGeometryCallback = extern "C" fn(geometry_id: c_uint);
 pub type ULGPUDriverUpdateCommandListCallback = extern "C" fn(list: ULCommandList);
 
@@ -553,8 +565,12 @@ unsafe extern "C" {
     pub fn ulRectMakeEmpty() -> ULRect;
     pub fn ulIntRectIsEmpty(rect: ULIntRect) -> bool;
     pub fn ulIntRectMakeEmpty() -> ULIntRect;
-    pub fn ulApplyProjection(transform: ULMatrix4x4, viewport_width: c_float, 
-                            viewport_height: c_float, flip_y: bool) -> ULMatrix4x4;
+    pub fn ulApplyProjection(
+        transform: ULMatrix4x4,
+        viewport_width: c_float,
+        viewport_height: c_float,
+        flip_y: bool,
+    ) -> ULMatrix4x4;
 }
 
 // String functions
@@ -573,8 +589,12 @@ unsafe extern "C" {
 
 // Buffer functions
 unsafe extern "C" {
-    pub fn ulCreateBuffer(data: *mut c_void, size: usize, user_data: *mut c_void,
-                            destruction_callback: ULDestroyBufferCallback) -> ULBuffer;
+    pub fn ulCreateBuffer(
+        data: *mut c_void,
+        size: usize,
+        user_data: *mut c_void,
+        destruction_callback: ULDestroyBufferCallback,
+    ) -> ULBuffer;
     pub fn ulCreateBufferFromCopy(data: *const c_void, size: usize) -> ULBuffer;
     pub fn ulDestroyBuffer(buffer: ULBuffer);
     pub fn ulBufferGetData(buffer: ULBuffer) -> *mut c_void;
@@ -587,9 +607,15 @@ unsafe extern "C" {
 unsafe extern "C" {
     pub fn ulCreateEmptyBitmap() -> ULBitmap;
     pub fn ulCreateBitmap(width: c_uint, height: c_uint, format: ULBitmapFormat) -> ULBitmap;
-    pub fn ulCreateBitmapFromPixels(width: c_uint, height: c_uint, format: ULBitmapFormat,
-                                    row_bytes: c_uint, pixels: *const c_void, size: usize,
-                                    should_copy: bool) -> ULBitmap;
+    pub fn ulCreateBitmapFromPixels(
+        width: c_uint,
+        height: c_uint,
+        format: ULBitmapFormat,
+        row_bytes: c_uint,
+        pixels: *const c_void,
+        size: usize,
+        should_copy: bool,
+    ) -> ULBitmap;
     pub fn ulCreateBitmapFromCopy(existing_bitmap: ULBitmap) -> ULBitmap;
     pub fn ulDestroyBitmap(bitmap: ULBitmap);
     pub fn ulBitmapGetWidth(bitmap: ULBitmap) -> c_uint;
@@ -669,8 +695,18 @@ unsafe extern "C" {
     pub fn ulRender(renderer: ULRenderer);
     pub fn ulPurgeMemory(renderer: ULRenderer);
     pub fn ulLogMemoryUsage(renderer: ULRenderer);
-    pub fn ulStartRemoteInspectorServer(renderer: ULRenderer, address: *const c_char, port: c_ushort) -> bool;
-    pub fn ulSetGamepadDetails(renderer: ULRenderer, index: c_uint, id: ULString, axis_count: c_uint, button_count: c_uint);
+    pub fn ulStartRemoteInspectorServer(
+        renderer: ULRenderer,
+        address: *const c_char,
+        port: c_ushort,
+    ) -> bool;
+    pub fn ulSetGamepadDetails(
+        renderer: ULRenderer,
+        index: c_uint,
+        id: ULString,
+        axis_count: c_uint,
+        button_count: c_uint,
+    );
     pub fn ulFireGamepadEvent(renderer: ULRenderer, evt: ULGamepadEvent);
     pub fn ulFireGamepadAxisEvent(renderer: ULRenderer, evt: ULGamepadAxisEvent);
     pub fn ulFireGamepadButtonEvent(renderer: ULRenderer, evt: ULGamepadButtonEvent);
@@ -705,7 +741,13 @@ unsafe extern "C" {
 
 // View functions
 unsafe extern "C" {
-    pub fn ulCreateView(renderer: ULRenderer, width: c_uint, height: c_uint, view_config: ULViewConfig, session: ULSession) -> ULView;
+    pub fn ulCreateView(
+        renderer: ULRenderer,
+        width: c_uint,
+        height: c_uint,
+        view_config: ULViewConfig,
+        session: ULSession,
+    ) -> ULView;
     pub fn ulDestroyView(view: ULView);
     pub fn ulViewGetURL(view: ULView) -> ULString;
     pub fn ulViewGetTitle(view: ULView) -> ULString;
@@ -725,7 +767,11 @@ unsafe extern "C" {
     pub fn ulViewResize(view: ULView, width: c_uint, height: c_uint);
     pub fn ulViewLockJSContext(view: ULView) -> JSContextRef;
     pub fn ulViewUnlockJSContext(view: ULView);
-    pub fn ulViewEvaluateScript(view: ULView, js_string: ULString, exception: *mut ULString) -> ULString;
+    pub fn ulViewEvaluateScript(
+        view: ULView,
+        js_string: ULString,
+        exception: *mut ULString,
+    ) -> ULString;
     pub fn ulViewCanGoBack(view: ULView) -> bool;
     pub fn ulViewCanGoForward(view: ULView) -> bool;
     pub fn ulViewGoBack(view: ULView);
@@ -740,19 +786,71 @@ unsafe extern "C" {
     pub fn ulViewFireKeyEvent(view: ULView, key_event: ULKeyEvent);
     pub fn ulViewFireMouseEvent(view: ULView, mouse_event: ULMouseEvent);
     pub fn ulViewFireScrollEvent(view: ULView, scroll_event: ULScrollEvent);
-    pub fn ulViewSetChangeTitleCallback(view: ULView, callback: ULChangeTitleCallback, user_data: *mut c_void);
-    pub fn ulViewSetChangeURLCallback(view: ULView, callback: ULChangeURLCallback, user_data: *mut c_void);
-    pub fn ulViewSetChangeTooltipCallback(view: ULView, callback: ULChangeTooltipCallback, user_data: *mut c_void);
-    pub fn ulViewSetChangeCursorCallback(view: ULView, callback: ULChangeCursorCallback, user_data: *mut c_void);
-    pub fn ulViewSetAddConsoleMessageCallback(view: ULView, callback: ULAddConsoleMessageCallback, user_data: *mut c_void);
-    pub fn ulViewSetCreateChildViewCallback(view: ULView, callback: ULCreateChildViewCallback, user_data: *mut c_void);
-    pub fn ulViewSetCreateInspectorViewCallback(view: ULView, callback: ULCreateInspectorViewCallback, user_data: *mut c_void);
-    pub fn ulViewSetBeginLoadingCallback(view: ULView, callback: ULBeginLoadingCallback, user_data: *mut c_void);
-    pub fn ulViewSetFinishLoadingCallback(view: ULView, callback: ULFinishLoadingCallback, user_data: *mut c_void);
-    pub fn ulViewSetFailLoadingCallback(view: ULView, callback: ULFailLoadingCallback, user_data: *mut c_void);
-    pub fn ulViewSetWindowObjectReadyCallback(view: ULView, callback: ULWindowObjectReadyCallback, user_data: *mut c_void);
-    pub fn ulViewSetDOMReadyCallback(view: ULView, callback: ULDOMReadyCallback, user_data: *mut c_void);
-    pub fn ulViewSetUpdateHistoryCallback(view: ULView, callback: ULUpdateHistoryCallback, user_data: *mut c_void);
+    pub fn ulViewSetChangeTitleCallback(
+        view: ULView,
+        callback: ULChangeTitleCallback,
+        user_data: *mut c_void,
+    );
+    pub fn ulViewSetChangeURLCallback(
+        view: ULView,
+        callback: ULChangeURLCallback,
+        user_data: *mut c_void,
+    );
+    pub fn ulViewSetChangeTooltipCallback(
+        view: ULView,
+        callback: ULChangeTooltipCallback,
+        user_data: *mut c_void,
+    );
+    pub fn ulViewSetChangeCursorCallback(
+        view: ULView,
+        callback: ULChangeCursorCallback,
+        user_data: *mut c_void,
+    );
+    pub fn ulViewSetAddConsoleMessageCallback(
+        view: ULView,
+        callback: ULAddConsoleMessageCallback,
+        user_data: *mut c_void,
+    );
+    pub fn ulViewSetCreateChildViewCallback(
+        view: ULView,
+        callback: ULCreateChildViewCallback,
+        user_data: *mut c_void,
+    );
+    pub fn ulViewSetCreateInspectorViewCallback(
+        view: ULView,
+        callback: ULCreateInspectorViewCallback,
+        user_data: *mut c_void,
+    );
+    pub fn ulViewSetBeginLoadingCallback(
+        view: ULView,
+        callback: ULBeginLoadingCallback,
+        user_data: *mut c_void,
+    );
+    pub fn ulViewSetFinishLoadingCallback(
+        view: ULView,
+        callback: ULFinishLoadingCallback,
+        user_data: *mut c_void,
+    );
+    pub fn ulViewSetFailLoadingCallback(
+        view: ULView,
+        callback: ULFailLoadingCallback,
+        user_data: *mut c_void,
+    );
+    pub fn ulViewSetWindowObjectReadyCallback(
+        view: ULView,
+        callback: ULWindowObjectReadyCallback,
+        user_data: *mut c_void,
+    );
+    pub fn ulViewSetDOMReadyCallback(
+        view: ULView,
+        callback: ULDOMReadyCallback,
+        user_data: *mut c_void,
+    );
+    pub fn ulViewSetUpdateHistoryCallback(
+        view: ULView,
+        callback: ULUpdateHistoryCallback,
+        user_data: *mut c_void,
+    );
     pub fn ulViewSetNeedsPaint(view: ULView, needs_paint: bool);
     pub fn ulViewGetNeedsPaint(view: ULView) -> bool;
     pub fn ulViewCreateLocalInspectorView(view: ULView);
@@ -761,28 +859,37 @@ unsafe extern "C" {
 // Key event functions
 unsafe extern "C" {
     pub fn ulCreateKeyEvent(
-        type_: ULKeyEventType, 
-        modifiers: c_uint, 
-        virtual_key_code: c_int, 
-        native_key_code: c_int, 
-        text: ULString, 
-        unmodified_text: ULString, 
-        is_keypad: bool, 
-        is_auto_repeat: bool, 
-        is_system_key: bool
+        type_: ULKeyEventType,
+        modifiers: c_uint,
+        virtual_key_code: c_int,
+        native_key_code: c_int,
+        text: ULString,
+        unmodified_text: ULString,
+        is_keypad: bool,
+        is_auto_repeat: bool,
+        is_system_key: bool,
     ) -> ULKeyEvent;
     pub fn ulDestroyKeyEvent(evt: ULKeyEvent);
 }
 
 // Mouse event functions
 unsafe extern "C" {
-    pub fn ulCreateMouseEvent(type_: ULMouseEventType, x: c_int, y: c_int, button: ULMouseButton) -> ULMouseEvent;
+    pub fn ulCreateMouseEvent(
+        type_: ULMouseEventType,
+        x: c_int,
+        y: c_int,
+        button: ULMouseButton,
+    ) -> ULMouseEvent;
     pub fn ulDestroyMouseEvent(evt: ULMouseEvent);
 }
 
 // Scroll event functions
 unsafe extern "C" {
-    pub fn ulCreateScrollEvent(type_: ULScrollEventType, delta_x: c_int, delta_y: c_int) -> ULScrollEvent;
+    pub fn ulCreateScrollEvent(
+        type_: ULScrollEventType,
+        delta_x: c_int,
+        delta_y: c_int,
+    ) -> ULScrollEvent;
     pub fn ulDestroyScrollEvent(evt: ULScrollEvent);
 }
 
@@ -790,9 +897,17 @@ unsafe extern "C" {
 unsafe extern "C" {
     pub fn ulCreateGamepadEvent(index: c_uint, type_: ULGamepadEventType) -> ULGamepadEvent;
     pub fn ulDestroyGamepadEvent(evt: ULGamepadEvent);
-    pub fn ulCreateGamepadAxisEvent(index: c_uint, axis_index: c_uint, value: c_double) -> ULGamepadAxisEvent;
+    pub fn ulCreateGamepadAxisEvent(
+        index: c_uint,
+        axis_index: c_uint,
+        value: c_double,
+    ) -> ULGamepadAxisEvent;
     pub fn ulDestroyGamepadAxisEvent(evt: ULGamepadAxisEvent);
-    pub fn ulCreateGamepadButtonEvent(index: c_uint, button_index: c_uint, value: c_double) -> ULGamepadButtonEvent;
+    pub fn ulCreateGamepadButtonEvent(
+        index: c_uint,
+        button_index: c_uint,
+        value: c_double,
+    ) -> ULGamepadButtonEvent;
     pub fn ulDestroyGamepadButtonEvent(evt: ULGamepadButtonEvent);
 }
 
@@ -806,11 +921,11 @@ unsafe extern "C" {
 // Image source functions
 unsafe extern "C" {
     pub fn ulCreateImageSourceFromTexture(
-        width: c_uint, 
-        height: c_uint, 
-        texture_id: c_uint, 
-        texture_uv: ULRect, 
-        bitmap: ULBitmap
+        width: c_uint,
+        height: c_uint,
+        texture_id: c_uint,
+        texture_uv: ULRect,
+        bitmap: ULBitmap,
     ) -> ULImageSource;
     pub fn ulCreateImageSourceFromBitmap(bitmap: ULBitmap) -> ULImageSource;
     pub fn ulDestroyImageSource(image_source: ULImageSource);

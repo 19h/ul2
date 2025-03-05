@@ -1,18 +1,16 @@
-use std::os::raw::{c_int, c_uint, c_double};
-use crate::ul::ffi::{ULKeyEvent, ULKeyEventType, ULMouseEvent, ULMouseEventType, ULMouseButton,
-                ULScrollEvent, ULScrollEventType, ULGamepadEvent, ULGamepadEventType,
-                ULGamepadAxisEvent, ULGamepadButtonEvent, ulCreateKeyEvent, ulDestroyKeyEvent,
-                ulCreateMouseEvent, ulDestroyMouseEvent, ulCreateScrollEvent, ulDestroyScrollEvent,
-                ulCreateGamepadEvent, ulDestroyGamepadEvent, ulCreateGamepadAxisEvent, 
-                ulDestroyGamepadAxisEvent, ulCreateGamepadButtonEvent, ulDestroyGamepadButtonEvent};
+use crate::ul::ffi::{
+    ULGamepadAxisEvent, ULGamepadButtonEvent, ULGamepadEvent, ULKeyEvent, ULMouseEvent,
+    ULScrollEvent, ulCreateGamepadAxisEvent, ulCreateGamepadButtonEvent, ulCreateGamepadEvent,
+    ulCreateKeyEvent, ulCreateMouseEvent, ulCreateScrollEvent, ulDestroyGamepadAxisEvent,
+    ulDestroyGamepadButtonEvent, ulDestroyGamepadEvent, ulDestroyKeyEvent, ulDestroyMouseEvent,
+    ulDestroyScrollEvent,
+};
 use crate::ul::string::String;
 
 pub use crate::ul::ffi::{
-    ULKeyEventType as KeyEventType,
-    ULMouseEventType as MouseEventType,
-    ULMouseButton as MouseButton,
+    ULGamepadEventType as GamepadEventType, ULKeyEventType as KeyEventType,
+    ULMouseButton as MouseButton, ULMouseEventType as MouseEventType,
     ULScrollEventType as ScrollEventType,
-    ULGamepadEventType as GamepadEventType,
 };
 
 /// A safe wrapper around Ultralight's ULKeyEvent type.
@@ -60,7 +58,7 @@ impl KeyEvent {
     ) -> Self {
         let text_str = String::from_str(text);
         let unmodified_text_str = String::from_str(unmodified_text);
-        
+
         unsafe {
             let raw = ulCreateKeyEvent(
                 event_type,
@@ -73,11 +71,11 @@ impl KeyEvent {
                 is_auto_repeat,
                 is_system_key,
             );
-            
+
             Self { raw }
         }
     }
-    
+
     /// Get a reference to the raw ULKeyEvent.
     pub fn raw(&self) -> ULKeyEvent {
         self.raw
@@ -102,7 +100,7 @@ impl MouseEvent {
             Self { raw }
         }
     }
-    
+
     /// Get a reference to the raw ULMouseEvent.
     pub fn raw(&self) -> ULMouseEvent {
         self.raw
@@ -127,7 +125,7 @@ impl ScrollEvent {
             Self { raw }
         }
     }
-    
+
     /// Get a reference to the raw ULScrollEvent.
     pub fn raw(&self) -> ULScrollEvent {
         self.raw
@@ -152,7 +150,7 @@ impl GamepadEvent {
             Self { raw }
         }
     }
-    
+
     /// Get a reference to the raw ULGamepadEvent.
     pub fn raw(&self) -> ULGamepadEvent {
         self.raw
@@ -177,7 +175,7 @@ impl GamepadAxisEvent {
             Self { raw }
         }
     }
-    
+
     /// Get a reference to the raw ULGamepadAxisEvent.
     pub fn raw(&self) -> ULGamepadAxisEvent {
         self.raw
@@ -202,7 +200,7 @@ impl GamepadButtonEvent {
             Self { raw }
         }
     }
-    
+
     /// Get a reference to the raw ULGamepadButtonEvent.
     pub fn raw(&self) -> ULGamepadButtonEvent {
         self.raw

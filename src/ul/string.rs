@@ -1,11 +1,13 @@
+use crate::ul::error::Error;
+use crate::ul::ffi::{
+    ULChar16, ULString, ulCreateString, ulCreateStringFromCopy, ulCreateStringUTF8,
+    ulCreateStringUTF16, ulDestroyString, ulStringAssignCString, ulStringAssignString,
+    ulStringGetData, ulStringGetLength, ulStringIsEmpty,
+};
 use std::ffi::{CStr, CString};
 use std::fmt;
 use std::ops::Deref;
-use std::os::raw::{c_char, c_ushort};
-use crate::ul::ffi::{ULString, ULChar16, ulCreateString, ulCreateStringUTF8, ulCreateStringUTF16, 
-                ulCreateStringFromCopy, ulDestroyString, ulStringGetData, ulStringGetLength, 
-                ulStringIsEmpty, ulStringAssignString, ulStringAssignCString};
-use crate::ul::error::Error;
+use std::os::raw::c_char;
 
 /// A safe wrapper around Ultralight's ULString type.
 pub struct String {
@@ -22,12 +24,12 @@ impl String {
     pub unsafe fn from_raw(raw: ULString, owned: bool) -> Self {
         Self { raw, owned }
     }
-    
+
     /// Create a new empty string.
     pub fn empty() -> Self {
         Self::from_str("")
     }
-    
+
     /// Create a new string from a Rust string slice.
     pub fn from_str(s: &str) -> Self {
         let c_str = CString::new(s).unwrap();
@@ -36,7 +38,7 @@ impl String {
             Self { raw, owned: true }
         }
     }
-    
+
     /// Create a new string from UTF-8 data.
     pub fn from_utf8(s: &[u8]) -> Self {
         unsafe {
@@ -44,7 +46,7 @@ impl String {
             Self { raw, owned: true }
         }
     }
-    
+
     /// Create a new string from UTF-16 data.
     pub fn from_utf16(s: &[u16]) -> Self {
         unsafe {
@@ -52,7 +54,7 @@ impl String {
             Self { raw, owned: true }
         }
     }
-    
+
     /// Create a copy of another string.
     pub fn from_copy(other: &Self) -> Self {
         unsafe {
@@ -60,71 +62,73 @@ impl String {
             Self { raw, owned: true }
         }
     }
-    
+
     /// Get a reference to the raw ULString.
     pub fn raw(&self) -> ULString {
         self.raw
     }
-    
+
     /// Get the UTF-8 data as a string slice.
     pub fn as_str(&self) -> Result<&str, Error> {
         if self.raw.is_null() {
             return Err(Error::NullReference("String is null"));
         }
-        
+
         unsafe {
             let data = ulStringGetData(self.raw);
             if data.is_null() {
                 return Err(Error::NullReference("String data is null"));
             }
-            
+
             let c_str = CStr::from_ptr(data);
-            c_str.to_str().map_err(|_| Error::InvalidOperation("Invalid UTF-8 in string"))
+            c_str
+                .to_str()
+                .map_err(|_| Error::InvalidOperation("Invalid UTF-8 in string"))
         }
     }
-    
+
     /// Get the length of the string in bytes.
     pub fn len(&self) -> usize {
         if self.raw.is_null() {
             return 0;
         }
-        
+
         unsafe { ulStringGetLength(self.raw) }
     }
-    
+
     /// Check if the string is empty.
     pub fn is_empty(&self) -> bool {
         if self.raw.is_null() {
             return true;
         }
-        
+
         unsafe { ulStringIsEmpty(self.raw) }
     }
-    
+
     /// Assign the content of another string to this one.
     pub fn assign(&mut self, other: &Self) -> Result<(), Error> {
         if self.raw.is_null() || other.raw.is_null() {
             return Err(Error::NullReference("String is null"));
         }
-        
+
         unsafe {
             ulStringAssignString(self.raw, other.raw);
         }
-        
+
         Ok(())
     }
-    
+
     /// Assign a Rust string slice to this string.
     pub fn assign_str(&mut self, s: &str) -> Result<(), Error> {
         if self.raw.is_null() {
             return Err(Error::NullReference("String is null"));
         }
-        
+
         let c_str = CString::new(s).unwrap();
         unsafe {
             ulStringAssignCString(self.raw, c_str.as_ptr());
         }
-        
+
         Ok(())
     }
 }
@@ -177,7 +181,7 @@ impl From<std::string::String> for String {
 
 impl Deref for String {
     type Target = str;
-    
+
     fn deref(&self) -> &Self::Target {
         self.as_str().unwrap_or("")
     }

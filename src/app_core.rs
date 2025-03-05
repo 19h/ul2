@@ -1,17 +1,17 @@
 //! # Ultralight AppCore
-//! 
+//!
 //! Safe Rust bindings for the Ultralight AppCore library, providing window management and UI capabilities.
-//! 
+//!
 //! AppCore is a convenient windowing system for desktop platforms built on top of the Ultralight renderer.
 //! It automatically sets up the Renderer, creates a run loop, and handles all window creation, painting,
 //! and platform-specific operations.
-//! 
+//!
 //! ## Example usage
-//! 
+//!
 //! ```rust
 //! use ultralight_rs::*;
 //! use ultralight_appcore::*;
-//! 
+//!
 //! fn main() {
 //!     // Create app settings with default values
 //!     let settings = Settings::new();

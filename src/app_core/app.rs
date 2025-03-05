@@ -1,10 +1,11 @@
-use std::os::raw::c_void;
-use std::ptr;
-use crate::app_core::ffi::{ULApp, ULSettings, ulCreateApp, ulDestroyApp, ulAppSetUpdateCallback,
-                          ulAppIsRunning, ulAppGetMainMonitor, ulAppGetRenderer, ulAppRun, ulAppQuit};
-use crate::app_core::settings::Settings;
+use crate::app_core::ffi::{
+    ULApp, ulAppGetMainMonitor, ulAppGetRenderer, ulAppIsRunning, ulAppQuit, ulAppRun,
+    ulAppSetUpdateCallback, ulCreateApp, ulDestroyApp,
+};
 use crate::app_core::monitor::Monitor;
+use crate::app_core::settings::Settings;
 use crate::ul::{Config, Renderer};
+use std::os::raw::c_void;
 
 /// Callback for app updates.
 pub trait UpdateCallback: Send {
@@ -26,13 +27,17 @@ struct CallbackData<T: ?Sized> {
 
 impl<T> CallbackData<T> {
     fn new(data: T) -> *mut c_void {
-        let data = Box::new(CallbackData { data: Box::new(data) });
+        let data = Box::new(CallbackData {
+            data: Box::new(data),
+        });
         Box::into_raw(data) as *mut c_void
     }
-    
+
     unsafe fn drop(ptr: *mut c_void) {
-        if !ptr.is_null() {
-            let _ = Box::from_raw(ptr as *mut CallbackData<T>);
+        unsafe {
+            if !ptr.is_null() {
+                let _ = Box::from_raw(ptr as *mut CallbackData<T>);
+            }
         }
     }
 }
@@ -58,7 +63,7 @@ impl App {
             Self { raw }
         }
     }
-    
+
     /// Create a new App instance with default settings and config.
     pub fn with_defaults() -> Self {
         let settings = Settings::new();
@@ -68,12 +73,12 @@ impl App {
             Self { raw }
         }
     }
-    
+
     /// Get a reference to the raw ULApp.
     pub fn raw(&self) -> ULApp {
         self.raw
     }
-    
+
     /// Set a callback for app updates.
     ///
     /// This event is fired right before the run loop calls
@@ -84,16 +89,16 @@ impl App {
             ulAppSetUpdateCallback(
                 self.raw,
                 std::mem::transmute(update_callback_wrapper::<T> as extern "C" fn(*mut c_void)),
-                user_data
+                user_data,
             );
         }
     }
-    
+
     /// Check if the app is running.
     pub fn is_running(&self) -> bool {
         unsafe { ulAppIsRunning(self.raw) }
     }
-    
+
     /// Get the main monitor.
     pub fn main_monitor(&self) -> Monitor {
         unsafe {
@@ -101,7 +106,7 @@ impl App {
             Monitor::from_raw(monitor)
         }
     }
-    
+
     /// Get the underlying Renderer instance.
     pub fn renderer(&self) -> Renderer {
         unsafe {
@@ -109,7 +114,7 @@ impl App {
             Renderer::from_raw(renderer, false)
         }
     }
-    
+
     /// Run the main loop.
     ///
     /// This function will block until the app is quit.
@@ -118,7 +123,7 @@ impl App {
             ulAppRun(self.raw);
         }
     }
-    
+
     /// Quit the application.
     pub fn quit(&self) {
         unsafe {

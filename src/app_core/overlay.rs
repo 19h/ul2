@@ -176,3 +176,13 @@ impl Drop for Overlay {
         }
     }
 }
+
+impl Clone for Overlay {
+    fn clone(&self) -> Self {
+        unsafe {
+            // Create a new wrapper around the same raw overlay,
+            // but mark it as non-owning so it won't be destroyed twice
+            Self::from_raw(self.raw)
+        }
+    }
+}

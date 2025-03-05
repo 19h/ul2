@@ -68,6 +68,20 @@ impl App {
         Self::new(&settings, &config)
     }
 
+    /// Create an App from a raw ULApp pointer.
+    ///
+    /// # Safety
+    ///
+    /// The pointer must be a valid ULApp created by the AppCore API.
+    /// This function does not verify if the pointer is valid.
+    ///
+    /// # Returns
+    ///
+    /// An App instance.
+    pub unsafe fn from_raw(raw: ULApp) -> Self {
+        Self { raw }
+    }
+
     /// Get a reference to the raw ULApp.
     pub fn raw(&self) -> ULApp {
         self.raw
@@ -191,6 +205,16 @@ impl Drop for App {
             unsafe {
                 ulDestroyApp(self.raw);
             }
+        }
+    }
+}
+
+impl Clone for App {
+    fn clone(&self) -> Self {
+        unsafe {
+            // Create a new wrapper around the same raw overlay,
+            // but mark it as non-owning so it won't be destroyed twice
+            Self::from_raw(self.raw)
         }
     }
 }

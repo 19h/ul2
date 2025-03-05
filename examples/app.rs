@@ -16,6 +16,7 @@ struct Browser {
     window: Window,
     overlay: Overlay,
     last_time: Instant,
+    app: App,
     is_loading: bool,
 }
 
@@ -36,14 +37,16 @@ impl Browser {
             800,
             600,
             false,
-            WindowFlags::TITLED | WindowFlags::RESIZABLE,
+            WindowFlags::BORDERLESS | WindowFlags::RESIZABLE,
         ).expect("Failed to create window");
+        
+        window.set_title("Ultralight Example").expect("Failed to set window title");
 
         // Create a view config
         let mut view_config = ViewConfig::new();
         view_config
             .set_is_accelerated(true)
-            .set_is_transparent(false)
+            .set_is_transparent(true)
             .set_initial_device_scale(window.scale())
             .set_initial_focus(true);
 
@@ -60,6 +63,7 @@ impl Browser {
         Browser {
             window,
             overlay,
+            app,
             last_time: Instant::now(),
             is_loading: false,
         }
@@ -76,18 +80,37 @@ impl Browser {
         self.overlay.resize(width, height);
     }
     
-    // Set up callbacks using closures rather than implementing the traits
     fn setup_callbacks(&self) {
-        // Store weak references or use other methods to avoid callback issues
-        let window_ref = &self.window;
+        // Clone overlay for the resize callback
+        let overlay = self.overlay.clone();
         
         // Set up resize callback
         self.window.set_resize_callback(move |width, height| {
             println!("Window resized to {}x{}", width, height);
-            // We can't easily call self.resize() here, so we would need a different approach
+            overlay.resize(width, height);
         }).expect("Failed to set resize callback");
         
-        // Set up other callbacks as needed
+        // Set up close callback
+        self.window.set_close_callback(|| {
+            println!("Window closing!");
+        }).expect("Failed to set close callback");
+        
+        // Set up update callback - clone app first to avoid borrowing self
+        let update_callback = ThreadSafeUpdateCallback::new();
+        self.app.set_update_callback(move || {
+            update_callback.on_update(); // Use the already cloned app
+        }).expect("Failed to set update callback");
+    }
+    
+    fn show(&self) {
+        self.window.show();
+        self.overlay.show();
+    }
+    
+    fn run(&self) {
+        println!("Application starting...");
+        self.app.run();
+        println!("Application exited.");
     }
 }
 
@@ -107,73 +130,23 @@ impl ThreadSafeUpdateCallback {
         // Calculate delta time
         let current_time = Instant::now();
         let delta_time = current_time.duration_since(self.last_time).as_secs_f32();
-        
-        // Print delta time or perform updates
         println!("Delta time: {:.4}s", delta_time);
     }
 }
 
 fn main() {
-    // Initialize platform
-    platform::enable_default_logger("./ultralight.log");
-    platform::enable_platform_file_system("./resources/");
-    platform::enable_platform_font_loader();
-
-    // Create settings
-    let settings = Settings::default();
-    let config = Config::default();
+    // Create browser instance
+    let browser = Browser::new();
     
-    // Create application
-    let app = App::new(&settings, &config).expect("Failed to create app");
+    // Set up callbacks
+    browser.setup_callbacks();
     
-    // Get the main monitor
-    let monitor = app.main_monitor().expect("Failed to get main monitor");
+    // Show the browser window
+    browser.show();
     
-    // Create a window
-    let window = Window::new(
-        &monitor,
-        800,
-        600,
-        false,
-        WindowFlags::TITLED | WindowFlags::RESIZABLE,
-    ).expect("Failed to create window");
+    // Load a URL (optional)
+    browser.load_url("https://ultralig.ht");
     
-    window.set_title("Ultralight Example");
-    
-    // Create overlay with Rc for shared ownership
-    let overlay = Rc::new(Overlay::new(
-        &window,
-        window.width(),
-        window.height(),
-        0,
-        0
-    ).expect("Failed to create overlay"));
-    
-    // Clone the Rc for the closure
-    let overlay_for_callback = overlay.clone();
-    
-    window.set_resize_callback(move |width, height| {
-        println!("Window resized to {}x{}", width, height);
-        overlay_for_callback.resize(width, height);
-    }).expect("Failed to set resize callback");
-    
-    // Register a thread-safe update callback
-    let update_callback = ThreadSafeUpdateCallback::new();
-    app.set_update_callback(move || {
-        update_callback.on_update();
-    }).expect("Failed to set update callback");
-    
-    // Set up window callbacks with closures
-    window.set_close_callback(|| {
-        println!("Window closing!");
-    }).expect("Failed to set close callback");
-    
-    // Show the window and overlay
-    window.show();
-    overlay.show();
-    
-    // Run application
-    println!("Application starting...");
-    app.run();
-    println!("Application exited.");
+    // Run the application
+    browser.run();
 }

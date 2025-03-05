@@ -106,7 +106,7 @@ impl Window {
         }
     }
 
-    /// Create a Window from a raw ULWindow pointer for permanent usage.
+    /// Create a Window from a raw ULWindow pointer.
     ///
     /// # Safety
     ///
@@ -117,17 +117,6 @@ impl Window {
     ///
     /// A Window instance.
     pub unsafe fn from_raw(raw: ULWindow) -> Self {
-        Self { raw }
-    }
-
-    /// Create a temporary Window reference from a raw ULWindow pointer.
-    /// This is used internally for callback handling and does not take ownership.
-    ///
-    /// # Safety
-    ///
-    /// The pointer must be a valid ULWindow created by the AppCore API and must
-    /// remain valid for the duration of the callback execution.
-    unsafe fn from_raw_temp(raw: ULWindow) -> Self {
         Self { raw }
     }
 
@@ -388,6 +377,16 @@ impl Drop for Window {
             unsafe {
                 ulDestroyWindow(self.raw);
             }
+        }
+    }
+}
+
+impl Clone for Window {
+    fn clone(&self) -> Self {
+        unsafe {
+            // Create a new wrapper around the same raw overlay,
+            // but mark it as non-owning so it won't be destroyed twice
+            Self::from_raw(self.raw)
         }
     }
 }

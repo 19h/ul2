@@ -1,4 +1,5 @@
 use crate::app_core::ffi::{ULMonitor, ulMonitorGetHeight, ulMonitorGetScale, ulMonitorGetWidth};
+use crate::app_core::error::Error;
 
 /// A representation of a display monitor.
 pub struct Monitor {
@@ -11,6 +12,11 @@ impl Monitor {
     /// # Safety
     ///
     /// The pointer must be a valid ULMonitor created by the AppCore API.
+    /// This function does not verify if the pointer is valid.
+    ///
+    /// # Returns
+    ///
+    /// A Monitor instance.
     pub unsafe fn from_raw(raw: ULMonitor) -> Self {
         Self { raw }
     }

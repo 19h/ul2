@@ -4,6 +4,7 @@ use crate::app_core::ffi::{
     ulOverlayHasFocus, ulOverlayHide, ulOverlayIsHidden, ulOverlayMoveTo, ulOverlayResize,
     ulOverlayShow, ulOverlayUnfocus,
 };
+use crate::app_core::error::Error;
 use crate::app_core::window::Window;
 use crate::ul::View;
 
@@ -22,10 +23,17 @@ impl Overlay {
     /// * `height` - The height in pixels
     /// * `x` - The x-position (offset from the left of the window), in pixels
     /// * `y` - The y-position (offset from the top of the window), in pixels
-    pub fn new(window: &Window, width: u32, height: u32, x: i32, y: i32) -> Self {
+    ///
+    /// # Returns
+    ///
+    /// A Result containing the Overlay if successful, or an Error if overlay creation failed.
+    pub fn new(window: &Window, width: u32, height: u32, x: i32, y: i32) -> Result<Self, Error> {
         unsafe {
             let raw = ulCreateOverlay(window.raw(), width, height, x, y);
-            Self { raw }
+            if raw.is_null() {
+                return Err(Error::CreationFailed("Failed to create overlay"));
+            }
+            Ok(Self { raw })
         }
     }
 
@@ -37,10 +45,17 @@ impl Overlay {
     /// * `view` - The view to wrap (will use its width and height)
     /// * `x` - The x-position (offset from the left of the window), in pixels
     /// * `y` - The y-position (offset from the top of the window), in pixels
-    pub fn with_view(window: &Window, view: &View, x: i32, y: i32) -> Self {
+    ///
+    /// # Returns
+    ///
+    /// A Result containing the Overlay if successful, or an Error if overlay creation failed.
+    pub fn with_view(window: &Window, view: &View, x: i32, y: i32) -> Result<Self, Error> {
         unsafe {
             let raw = ulCreateOverlayWithView(window.raw(), view.raw(), x, y);
-            Self { raw }
+            if raw.is_null() {
+                return Err(Error::CreationFailed("Failed to create overlay with view"));
+            }
+            Ok(Self { raw })
         }
     }
 
@@ -49,6 +64,11 @@ impl Overlay {
     /// # Safety
     ///
     /// The pointer must be a valid ULOverlay created by the AppCore API.
+    /// This function does not verify if the pointer is valid.
+    ///
+    /// # Returns
+    ///
+    /// An Overlay instance.
     pub unsafe fn from_raw(raw: ULOverlay) -> Self {
         Self { raw }
     }
@@ -59,10 +79,17 @@ impl Overlay {
     }
 
     /// Get the underlying view.
-    pub fn view(&self) -> View {
+    ///
+    /// # Returns
+    ///
+    /// A Result containing the View if successful, or an Error if view retrieval failed.
+    pub fn view(&self) -> Result<View, Error> {
         unsafe {
             let view = ulOverlayGetView(self.raw);
-            View::from_raw(view)
+            if view.is_null() {
+                return Err(Error::NullReference("Failed to get view from overlay"));
+            }
+            Ok(View::from_raw(view))
         }
     }
 

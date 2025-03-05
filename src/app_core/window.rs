@@ -6,11 +6,13 @@ use crate::app_core::ffi::{
     ulWindowPixelsToScreen, ulWindowScreenToPixels, ulWindowSetCloseCallback, ulWindowSetCursor,
     ulWindowSetResizeCallback, ulWindowSetTitle, ulWindowShow,
 };
+use crate::app_core::error::Error;
 use crate::app_core::monitor::Monitor;
 use crate::ul::Cursor;
 use bitflags::bitflags;
 use std::ffi::CString;
 use std::os::raw::c_void;
+use std::sync::{Arc, Mutex};
 
 bitflags! {
     /// Window creation flags.
@@ -40,12 +42,11 @@ extern "C" fn close_callback_wrapper<T: CloseCallback>(
     window_ptr: ULWindow,
 ) {
     unsafe {
-        let callback = &*(user_data as *const T);
-        let window = Window::from_raw(window_ptr);
-        callback.on_close(&window);
-
-        // Prevent drop of window to avoid deallocation
-        std::mem::forget(window);
+        if !user_data.is_null() && !window_ptr.is_null() {
+            let callback = &*(user_data as *const T);
+            let window = Window::from_raw_temp(window_ptr);
+            callback.on_close(&window);
+        }
     }
 }
 
@@ -56,40 +57,39 @@ extern "C" fn resize_callback_wrapper<T: ResizeCallback>(
     height: u32,
 ) {
     unsafe {
-        let callback = &*(user_data as *const T);
-        let window = Window::from_raw(window_ptr);
-        callback.on_resize(&window, width, height);
-
-        // Prevent drop of window to avoid deallocation
-        std::mem::forget(window);
-    }
-}
-
-/// A structure that holds callback data and keeps it alive.
-struct CallbackData<T: ?Sized> {
-    data: Box<T>,
-}
-
-impl<T> CallbackData<T> {
-    fn new(data: T) -> *mut c_void {
-        let data = Box::new(CallbackData {
-            data: Box::new(data),
-        });
-        Box::into_raw(data) as *mut c_void
-    }
-
-    unsafe fn drop(ptr: *mut c_void) {
-        unsafe {
-            if !ptr.is_null() {
-                let _ = Box::from_raw(ptr as *mut CallbackData<T>);
-            }
+        if !user_data.is_null() && !window_ptr.is_null() {
+            let callback = &*(user_data as *const T);
+            let window = Window::from_raw_temp(window_ptr);
+            callback.on_resize(&window, width, height);
         }
+    }
+}
+
+// Thread-safe callback storage
+struct CallbackStorage<T: ?Sized> {
+    data: Option<Box<T>>,
+}
+
+impl<T> CallbackStorage<T> {
+    fn new() -> Self {
+        Self { data: None }
+    }
+
+    fn set(&mut self, data: T) -> *mut c_void {
+        self.data = Some(Box::new(data));
+        self.data.as_ref().unwrap().as_ref() as *const T as *mut c_void
+    }
+
+    fn clear(&mut self) {
+        self.data = None;
     }
 }
 
 /// A window for displaying content.
 pub struct Window {
     raw: ULWindow,
+    close_callback: Arc<Mutex<CallbackStorage<dyn CloseCallback>>>,
+    resize_callback: Arc<Mutex<CallbackStorage<dyn ResizeCallback>>>,
 }
 
 impl Window {
@@ -102,13 +102,17 @@ impl Window {
     /// * `height` - The height (in screen coordinates)
     /// * `fullscreen` - Whether or not the window is fullscreen
     /// * `window_flags` - Various window flags
+    ///
+    /// # Returns
+    ///
+    /// A Result containing the Window if successful, or an Error if window creation failed.
     pub fn new(
         monitor: &Monitor,
         width: u32,
         height: u32,
         fullscreen: bool,
         window_flags: WindowFlags,
-    ) -> Self {
+    ) -> Result<Self, Error> {
         unsafe {
             let raw = ulCreateWindow(
                 monitor.raw(),
@@ -117,17 +121,53 @@ impl Window {
                 fullscreen,
                 window_flags.bits(),
             );
-            Self { raw }
+            if raw.is_null() {
+                return Err(Error::CreationFailed("Failed to create window"));
+            }
+            
+            Ok(Self { 
+                raw,
+                close_callback: Arc::new(Mutex::new(CallbackStorage::new())),
+                resize_callback: Arc::new(Mutex::new(CallbackStorage::new())),
+            })
         }
     }
 
-    /// Create a Window from a raw ULWindow pointer.
+    /// Create a Window from a raw ULWindow pointer for permanent usage.
     ///
     /// # Safety
     ///
     /// The pointer must be a valid ULWindow created by the AppCore API.
+    /// This function does not verify if the pointer is valid.
+    ///
+    /// # Returns
+    ///
+    /// A Window instance.
     pub unsafe fn from_raw(raw: ULWindow) -> Self {
-        Self { raw }
+        Self { 
+            raw,
+            close_callback: Arc::new(Mutex::new(CallbackStorage::new())),
+            resize_callback: Arc::new(Mutex::new(CallbackStorage::new())),
+        }
+    }
+
+    /// Create a temporary Window from a raw ULWindow pointer.
+    /// This is used in callback wrappers and does not take ownership.
+    ///
+    /// # Safety
+    ///
+    /// The pointer must be a valid ULWindow created by the AppCore API.
+    /// This function does not verify if the pointer is valid.
+    ///
+    /// # Returns
+    ///
+    /// A Window instance that doesn't own the raw pointer.
+    unsafe fn from_raw_temp(raw: ULWindow) -> Self {
+        Self { 
+            raw,
+            close_callback: Arc::new(Mutex::new(CallbackStorage::new())),
+            resize_callback: Arc::new(Mutex::new(CallbackStorage::new())),
+        }
     }
 
     /// Get a reference to the raw ULWindow.
@@ -136,30 +176,88 @@ impl Window {
     }
 
     /// Set a callback to be notified when the window closes.
-    pub fn set_close_callback<T: 'static + CloseCallback>(&self, callback: T) {
+    ///
+    /// # Returns
+    ///
+    /// A Result containing Ok(()) if successful, or an Error if callback registration failed.
+    pub fn set_close_callback<T: 'static + CloseCallback>(&self, callback: T) -> Result<(), Error> {
         unsafe {
-            let user_data = CallbackData::new(callback);
+            let mut close_cb = match self.close_callback.lock() {
+                Ok(guard) => guard,
+                Err(_) => return Err(Error::CallbackRegistrationFailed("Failed to acquire close callback lock")),
+            };
+            
+            let user_data = close_cb.set(callback);
+            
             ulWindowSetCloseCallback(
                 self.raw,
-                std::mem::transmute(
-                    close_callback_wrapper::<T> as extern "C" fn(*mut c_void, *mut _),
-                ),
+                Some(close_callback_wrapper::<T>),
                 user_data,
             );
+            
+            Ok(())
+        }
+    }
+
+    /// Clear the close callback.
+    ///
+    /// # Returns
+    ///
+    /// A Result containing Ok(()) if successful, or an Error if callback clearing failed.
+    pub fn clear_close_callback(&self) -> Result<(), Error> {
+        unsafe {
+            let mut close_cb = match self.close_callback.lock() {
+                Ok(guard) => guard,
+                Err(_) => return Err(Error::InvalidOperation("Failed to acquire close callback lock")),
+            };
+            
+            close_cb.clear();
+            ulWindowSetCloseCallback(self.raw, None, std::ptr::null_mut());
+            
+            Ok(())
         }
     }
 
     /// Set a callback to be notified when the window resizes.
-    pub fn set_resize_callback<T: 'static + ResizeCallback>(&self, callback: T) {
+    ///
+    /// # Returns
+    ///
+    /// A Result containing Ok(()) if successful, or an Error if callback registration failed.
+    pub fn set_resize_callback<T: 'static + ResizeCallback>(&self, callback: T) -> Result<(), Error> {
         unsafe {
-            let user_data = CallbackData::new(callback);
+            let mut resize_cb = match self.resize_callback.lock() {
+                Ok(guard) => guard,
+                Err(_) => return Err(Error::CallbackRegistrationFailed("Failed to acquire resize callback lock")),
+            };
+            
+            let user_data = resize_cb.set(callback);
+            
             ulWindowSetResizeCallback(
                 self.raw,
-                std::mem::transmute(
-                    resize_callback_wrapper::<T> as extern "C" fn(*mut c_void, *mut _, u32, u32),
-                ),
+                Some(resize_callback_wrapper::<T>),
                 user_data,
             );
+            
+            Ok(())
+        }
+    }
+
+    /// Clear the resize callback.
+    ///
+    /// # Returns
+    ///
+    /// A Result containing Ok(()) if successful, or an Error if callback clearing failed.
+    pub fn clear_resize_callback(&self) -> Result<(), Error> {
+        unsafe {
+            let mut resize_cb = match self.resize_callback.lock() {
+                Ok(guard) => guard,
+                Err(_) => return Err(Error::InvalidOperation("Failed to acquire resize callback lock")),
+            };
+            
+            resize_cb.clear();
+            ulWindowSetResizeCallback(self.raw, None, std::ptr::null_mut());
+            
+            Ok(())
         }
     }
 
@@ -221,11 +319,25 @@ impl Window {
     }
 
     /// Set the window title.
-    pub fn set_title(&self, title: &str) {
-        let c_title = CString::new(title).unwrap();
+    ///
+    /// # Arguments
+    ///
+    /// * `title` - The new window title
+    ///
+    /// # Returns
+    ///
+    /// A Result containing Ok(()) if successful, or an Error if title setting failed.
+    pub fn set_title(&self, title: &str) -> Result<(), Error> {
+        let c_title = match CString::new(title) {
+            Ok(s) => s,
+            Err(_) => return Err(Error::InvalidArgument("Title contains null bytes")),
+        };
+        
         unsafe {
             ulWindowSetTitle(self.raw, c_title.as_ptr());
         }
+        
+        Ok(())
     }
 
     /// Set the cursor for the window.

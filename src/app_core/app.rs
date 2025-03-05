@@ -22,23 +22,15 @@ extern "C" fn update_callback_wrapper<T: UpdateCallback>(user_data: *mut c_void)
 
 /// A structure that holds callback data and keeps it alive.
 struct CallbackData<T: ?Sized> {
-    data: Box<T>,
+    _data: Box<T>,
 }
 
 impl<T> CallbackData<T> {
     fn new(data: T) -> *mut c_void {
         let data = Box::new(CallbackData {
-            data: Box::new(data),
+            _data: Box::new(data),
         });
         Box::into_raw(data) as *mut c_void
-    }
-
-    unsafe fn drop(ptr: *mut c_void) {
-        unsafe {
-            if !ptr.is_null() {
-                let _ = Box::from_raw(ptr as *mut CallbackData<T>);
-            }
-        }
     }
 }
 

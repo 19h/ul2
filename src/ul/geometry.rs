@@ -47,7 +47,10 @@ impl Rect {
     }
 
     /// Convert the rectangle to a raw ULRect.
-    pub fn into_raw(self) -> ULRect {
+    ///
+    /// This method creates a copy of the rectangle in the ULRect format,
+    /// which can be passed to Ultralight API functions.
+    pub fn to_raw(&self) -> ULRect {
         ULRect {
             left: self.left,
             top: self.top,
@@ -58,7 +61,7 @@ impl Rect {
 
     /// Check if the rectangle is empty.
     pub fn is_empty(&self) -> bool {
-        unsafe { ulRectIsEmpty(self.into_raw()) }
+        unsafe { ulRectIsEmpty(self.to_raw()) }
     }
 
     /// Get the width of the rectangle.
@@ -99,7 +102,10 @@ impl IntRect {
     }
 
     /// Convert the rectangle to a raw ULIntRect.
-    pub fn into_raw(self) -> ULIntRect {
+    ///
+    /// This method creates a copy of the rectangle in the ULIntRect format,
+    /// which can be passed to Ultralight API functions.
+    pub fn to_raw(&self) -> ULIntRect {
         ULIntRect {
             left: self.left,
             top: self.top,
@@ -110,7 +116,7 @@ impl IntRect {
 
     /// Check if the rectangle is empty.
     pub fn is_empty(&self) -> bool {
-        unsafe { ulIntRectIsEmpty(self.into_raw()) }
+        unsafe { ulIntRectIsEmpty(self.to_raw()) }
     }
 
     /// Get the width of the rectangle.

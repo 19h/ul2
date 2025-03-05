@@ -31,7 +31,7 @@ impl ImageSource {
                 width,
                 height,
                 texture_id,
-                texture_uv.into_raw(),
+                texture_uv.to_raw(),
                 bitmap_ptr,
             );
 

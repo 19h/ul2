@@ -203,7 +203,7 @@ impl Surface {
     /// Set the dirty bounds of the surface.
     pub fn set_dirty_bounds(&self, bounds: IntRect) {
         unsafe {
-            ulSurfaceSetDirtyBounds(self.raw, bounds.into_raw());
+            ulSurfaceSetDirtyBounds(self.raw, bounds.to_raw());
         }
     }
 

@@ -3,7 +3,7 @@ use crate::app_core::ffi::{
     ulSettingsSetDeveloperName, ulSettingsSetFileSystemPath, ulSettingsSetForceCPURenderer,
     ulSettingsSetLoadShadersFromFileSystem,
 };
-use crate::ul::String as ULString;
+use crate::ul::String;
 
 /// Settings used to customize AppCore runtime behavior.
 pub struct Settings {
@@ -31,9 +31,9 @@ impl Settings {
     ///
     /// Default is "MyCompany".
     pub fn set_developer_name(&mut self, name: &str) -> &mut Self {
-        let ul_name = ULString::from_str(name);
+        let name_string = String::from_str(name);
         unsafe {
-            ulSettingsSetDeveloperName(self.raw, ul_name);
+            ulSettingsSetDeveloperName(self.raw, name_string.raw());
         }
         self
     }
@@ -45,9 +45,9 @@ impl Settings {
     ///
     /// Default is "MyApp".
     pub fn set_app_name(&mut self, name: &str) -> &mut Self {
-        let ul_name = ULString::from_str(name);
+        let name_string = String::from_str(name);
         unsafe {
-            ulSettingsSetAppName(self.raw, ul_name);
+            ulSettingsSetAppName(self.raw, name_string.raw());
         }
         self
     }
@@ -63,9 +63,9 @@ impl Settings {
     /// - Linux: relative to the executable path
     /// - macOS: relative to YourApp.app/Contents/Resources/
     pub fn set_file_system_path(&mut self, path: &str) -> &mut Self {
-        let ul_path = ULString::from_str(path);
+        let path_string = String::from_str(path);
         unsafe {
-            ulSettingsSetFileSystemPath(self.raw, ul_path);
+            ulSettingsSetFileSystemPath(self.raw, path_string.raw());
         }
         self
     }

@@ -52,7 +52,7 @@ impl Session {
     pub fn name(&self) -> String {
         unsafe {
             let name = ulSessionGetName(self.raw);
-            String::from_raw(name, false)
+            String::from_raw(name)
         }
     }
 
@@ -65,7 +65,7 @@ impl Session {
     pub fn disk_path(&self) -> String {
         unsafe {
             let path = ulSessionGetDiskPath(self.raw);
-            String::from_raw(path, false)
+            String::from_raw(path)
         }
     }
 }

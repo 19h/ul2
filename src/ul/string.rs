@@ -10,9 +10,9 @@ use std::ops::Deref;
 use std::os::raw::c_char;
 
 /// A safe wrapper around Ultralight's ULString type.
+#[repr(transparent)]
 pub struct String {
     pub raw: ULString,
-    pub owned: bool,
 }
 
 impl String {
@@ -21,8 +21,8 @@ impl String {
     /// # Safety
     ///
     /// The pointer must be a valid ULString created by the Ultralight API.
-    pub unsafe fn from_raw(raw: ULString, owned: bool) -> Self {
-        Self { raw, owned }
+    pub unsafe fn from_raw(raw: ULString) -> Self {
+        Self { raw }
     }
 
     /// Create a new empty string.
@@ -35,7 +35,7 @@ impl String {
         let c_str = CString::new(s).unwrap();
         unsafe {
             let raw = ulCreateString(c_str.as_ptr());
-            Self { raw, owned: true }
+            Self { raw }
         }
     }
 
@@ -43,7 +43,7 @@ impl String {
     pub fn from_utf8(s: &[u8]) -> Self {
         unsafe {
             let raw = ulCreateStringUTF8(s.as_ptr() as *const c_char, s.len());
-            Self { raw, owned: true }
+            Self { raw }
         }
     }
 
@@ -51,7 +51,7 @@ impl String {
     pub fn from_utf16(s: &[u16]) -> Self {
         unsafe {
             let raw = ulCreateStringUTF16(s.as_ptr() as *mut ULChar16, s.len());
-            Self { raw, owned: true }
+            Self { raw }
         }
     }
 
@@ -59,7 +59,7 @@ impl String {
     pub fn from_copy(other: &Self) -> Self {
         unsafe {
             let raw = ulCreateStringFromCopy(other.raw);
-            Self { raw, owned: true }
+            Self { raw }
         }
     }
 
@@ -131,6 +131,11 @@ impl String {
 
         Ok(())
     }
+
+    pub fn is_owned(&self) -> bool {
+        // Access ownership information from somewhere else
+        false
+    }
 }
 
 impl Clone for String {
@@ -141,7 +146,7 @@ impl Clone for String {
 
 impl Drop for String {
     fn drop(&mut self) {
-        if !self.raw.is_null() && self.owned {
+        if !self.raw.is_null() && self.is_owned() {
             unsafe {
                 ulDestroyString(self.raw);
             }

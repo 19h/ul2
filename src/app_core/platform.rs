@@ -1,7 +1,7 @@
 use crate::app_core::ffi::{
     ulEnableDefaultLogger, ulEnablePlatformFileSystem, ulEnablePlatformFontLoader,
 };
-use crate::ul::String as ULString;
+use crate::ul::String;
 
 /// Initialize the platform font loader.
 ///
@@ -23,9 +23,9 @@ pub fn enable_platform_font_loader() {
 ///
 /// * `base_dir` - A base directory path to resolve relative paths against
 pub fn enable_platform_file_system(base_dir: &str) {
-    let ul_base_dir = ULString::from_str(base_dir);
+    let base_dir_string = String::from_str(base_dir);
     unsafe {
-        ulEnablePlatformFileSystem(ul_base_dir);
+        ulEnablePlatformFileSystem(base_dir_string.raw());
     }
 }
 
@@ -38,8 +38,8 @@ pub fn enable_platform_file_system(base_dir: &str) {
 ///
 /// * `log_path` - A writable log path to write the log to (e.g., "./ultralight.log")
 pub fn enable_default_logger(log_path: &str) {
-    let ul_log_path = ULString::from_str(log_path);
+    let log_path_string = String::from_str(log_path);
     unsafe {
-        ulEnableDefaultLogger(ul_log_path);
+        ulEnableDefaultLogger(log_path_string.raw());
     }
 }

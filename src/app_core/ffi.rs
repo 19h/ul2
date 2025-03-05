@@ -5,7 +5,7 @@
 
 use std::os::raw::{c_char, c_double, c_int, c_uint, c_void};
 
-use crate::ul::String as ULString;
+use crate::ul::ffi::ULString;
 use crate::ul::ffi::{ULConfig, ULCursor, ULRenderer, ULView};
 
 // Opaque struct types

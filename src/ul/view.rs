@@ -165,7 +165,7 @@ extern "C" fn change_title_callback<T: ChangeTitleCallback>(
     unsafe {
         let callback = &*(user_data as *const T);
         let view = View::from_raw(caller);
-        let title_str = String::from_raw(title, false);
+        let title_str = String::from_raw(title);
 
         callback.on_change_title(&view, &title_str);
 
@@ -182,7 +182,7 @@ extern "C" fn change_url_callback<T: ChangeURLCallback>(
     unsafe {
         let callback = &*(user_data as *const T);
         let view = View::from_raw(caller);
-        let url_str = String::from_raw(url, false);
+        let url_str = String::from_raw(url);
 
         callback.on_change_url(&view, &url_str);
 
@@ -199,7 +199,7 @@ extern "C" fn change_tooltip_callback<T: ChangeTooltipCallback>(
     unsafe {
         let callback = &*(user_data as *const T);
         let view = View::from_raw(caller);
-        let tooltip_str = String::from_raw(tooltip, false);
+        let tooltip_str = String::from_raw(tooltip);
 
         callback.on_change_tooltip(&view, &tooltip_str);
 
@@ -237,8 +237,8 @@ extern "C" fn add_console_message_callback<T: AddConsoleMessageCallback>(
     unsafe {
         let callback = &*(user_data as *const T);
         let view = View::from_raw(caller);
-        let message_str = String::from_raw(message, false);
-        let source_id_str = String::from_raw(source_id, false);
+        let message_str = String::from_raw(message);
+        let source_id_str = String::from_raw(source_id);
 
         callback.on_add_console_message(
             &view,
@@ -266,8 +266,8 @@ extern "C" fn create_child_view_callback<T: CreateChildViewCallback>(
     unsafe {
         let callback = &*(user_data as *const T);
         let view = View::from_raw(caller);
-        let opener_url_str = String::from_raw(opener_url, false);
-        let target_url_str = String::from_raw(target_url, false);
+        let opener_url_str = String::from_raw(opener_url);
+        let target_url_str = String::from_raw(target_url);
         let popup_rect_rust = IntRect::from_raw(popup_rect);
 
         let result = callback.on_create_child_view(
@@ -302,7 +302,7 @@ extern "C" fn create_inspector_view_callback<T: CreateInspectorViewCallback>(
     unsafe {
         let callback = &*(user_data as *const T);
         let view = View::from_raw(caller);
-        let inspected_url_str = String::from_raw(inspected_url, false);
+        let inspected_url_str = String::from_raw(inspected_url);
 
         let result = callback.on_create_inspector_view(&view, is_local, &inspected_url_str);
 
@@ -331,7 +331,7 @@ extern "C" fn begin_loading_callback<T: BeginLoadingCallback>(
     unsafe {
         let callback = &*(user_data as *const T);
         let view = View::from_raw(caller);
-        let url_str = String::from_raw(url, false);
+        let url_str = String::from_raw(url);
 
         callback.on_begin_loading(&view, frame_id, is_main_frame, &url_str);
 
@@ -350,7 +350,7 @@ extern "C" fn finish_loading_callback<T: FinishLoadingCallback>(
     unsafe {
         let callback = &*(user_data as *const T);
         let view = View::from_raw(caller);
-        let url_str = String::from_raw(url, false);
+        let url_str = String::from_raw(url);
 
         callback.on_finish_loading(&view, frame_id, is_main_frame, &url_str);
 
@@ -372,9 +372,9 @@ extern "C" fn fail_loading_callback<T: FailLoadingCallback>(
     unsafe {
         let callback = &*(user_data as *const T);
         let view = View::from_raw(caller);
-        let url_str = String::from_raw(url, false);
-        let description_str = String::from_raw(description, false);
-        let error_domain_str = String::from_raw(error_domain, false);
+        let url_str = String::from_raw(url);
+        let description_str = String::from_raw(description);
+        let error_domain_str = String::from_raw(error_domain);
 
         callback.on_fail_loading(
             &view,
@@ -401,7 +401,7 @@ extern "C" fn window_object_ready_callback<T: WindowObjectReadyCallback>(
     unsafe {
         let callback = &*(user_data as *const T);
         let view = View::from_raw(caller);
-        let url_str = String::from_raw(url, false);
+        let url_str = String::from_raw(url);
 
         callback.on_window_object_ready(&view, frame_id, is_main_frame, &url_str);
 
@@ -420,7 +420,7 @@ extern "C" fn dom_ready_callback<T: DOMReadyCallback>(
     unsafe {
         let callback = &*(user_data as *const T);
         let view = View::from_raw(caller);
-        let url_str = String::from_raw(url, false);
+        let url_str = String::from_raw(url);
 
         callback.on_dom_ready(&view, frame_id, is_main_frame, &url_str);
 
@@ -530,7 +530,7 @@ impl View {
     pub fn url(&self) -> String {
         unsafe {
             let url = ulViewGetURL(self.raw);
-            String::from_raw(url, false)
+            String::from_raw(url)
         }
     }
 
@@ -538,7 +538,7 @@ impl View {
     pub fn title(&self) -> String {
         unsafe {
             let title = ulViewGetTitle(self.raw);
-            String::from_raw(title, false)
+            String::from_raw(title)
         }
     }
 
@@ -654,11 +654,11 @@ impl View {
             let result = ulViewEvaluateScript(self.raw, js_str.raw(), &mut exception);
 
             if !exception.is_null() {
-                let exception_str = String::from_raw(exception, false);
+                let exception_str = String::from_raw(exception);
                 return Err(Error::JavaScriptError(exception_str.to_string()));
             }
 
-            Ok(String::from_raw(result, false))
+            Ok(String::from_raw(result))
         }
     }
 
